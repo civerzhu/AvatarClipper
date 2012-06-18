@@ -4,13 +4,17 @@
         <meta charset="utf-8" />
         <title>My Canvas Project</title>
         <style>
+        *{
+        	margin:0;
+        	padding:0;
+        }
        	#avatarClipper{
        		display:block;
-       		width:530px;
+       		width:550px;
        		height:360px;
        		margin:10px;
-       		border:1px solid #000000;
-       		background-color:rgb(220, 220, 220);
+       		border:1px solid rgb(180, 180, 180);
+       		background-color:rgb(240, 240, 240);
        	}
        	#editRegion{
         	margin:10px;
@@ -31,6 +35,9 @@
         	top:-100%;
         	left:0;
         }
+        #canvasMask:hover{
+        	cursor:crosshair;
+        }
         #canvasPattern{
         	display:none;
         }
@@ -39,13 +46,33 @@
         	float:left;
         	margin:10px;
         }
+        #resultRegion p{
+        	margin-bottom:6px;
+        	font-size:12px;
+        }
         #canvasResult{
-        	/*display:none;*/
-        	/*display:block;
-        	position:relative;
-        	top:-100%;
-        	left:0;*/
+        	display:block;
         	border:1px solid #0000FF;
+        }
+        #canvasResult2{
+        	display:block;
+        	border:1px solid #0000FF;
+        }
+        #zoomIn, #zoomOut{
+        	margin:10px 10px 0 0;
+        	width:30px;
+        	height:30px;
+        	-moz-border-radius:15px;
+        	-webkit-border-radius:15px;
+        	-o-border-radius:15px;
+        	ms-border-radius:15px;
+        	border-radius:15px;
+        	font-size:20px;
+        }
+        #resetImg, #outputImg{
+        	margin:10px 10px 0 0;
+        	width:90px;
+        	height:30px;
         }
         </style>
     </head>
@@ -55,14 +82,19 @@
     		<div id="wrapCanvas">
         		<canvas id="canvasPic" width="300" height="300">Your browser does not support HTML5 canvas.</canvas>
         		<canvas id="canvasMask" width="300" height="300">HTML5 canvas here.</canvas>
-        		<canvas id="canvasPattern" width="20" height="20">canvas pattern should not be seen.</canvas>
     		</div><!--/div#wrapCanvas-->
+    		<input id="zoomOut" type="button" value="+" />
+    		<input id="zoomIn" type="button" value="-" />
+    		<input id="resetImg" type="button" value="reset image" />
+    		<input id="outputImg" type="button" value="output image"/>
     	</div><!--/div#editRegion-->
     	<div id="resultRegion">
     		<canvas id="canvasResult" width="100" height="100">HTML5 canvas here.</canvas>
     		<p>100*100px</p>
+    		<canvas id="canvasResult2" width="200" height="200">HTML5 canvas here.</canvas>
+    		<p>200*200px</p>
     	</div><!--/div#resultRegion-->
     </div><!--/div#avatarClipper-->
-    <script type="text/javascript" src="avatarclipper.js"></script>
+    <script type="text/javascript" src="canvasapp.js"></script>
     </body>
 </html>
