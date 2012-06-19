@@ -3,78 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <title>My Canvas Project</title>
-        <style>
-        *{
-        	margin:0;
-        	padding:0;
-        }
-       	#avatarClipper{
-       		display:block;
-       		width:550px;
-       		height:360px;
-       		margin:10px;
-       		border:1px solid rgb(180, 180, 180);
-       		background-color:rgb(240, 240, 240);
-       	}
-       	#editRegion{
-        	margin:10px;
-       		display:block;
-       		float:left;
-       	}
-      	#wrapCanvas{
-        	width:300px;
-        	height:300px;
-        }
-        #canvasPic{
-        	display:block;
-        	border:1px solid #000000;
-        }
-        #canvasMask{
-        	display:block;
-        	position:relative;
-        	top:-100%;
-        	left:0;
-        }
-        #canvasMask:hover{
-        	cursor:crosshair;
-        }
-        #canvasPattern{
-        	display:none;
-        }
-        #resultRegion{
-        	display:block;
-        	float:left;
-        	margin:10px;
-        }
-        #resultRegion p{
-        	margin-bottom:6px;
-        	font-size:12px;
-        }
-        #canvasResult{
-        	display:block;
-        	border:1px solid #0000FF;
-        }
-        #canvasResult2{
-        	display:block;
-        	border:1px solid #0000FF;
-        }
-        #zoomIn, #zoomOut{
-        	margin:10px 10px 0 0;
-        	width:30px;
-        	height:30px;
-        	-moz-border-radius:15px;
-        	-webkit-border-radius:15px;
-        	-o-border-radius:15px;
-        	ms-border-radius:15px;
-        	border-radius:15px;
-        	font-size:20px;
-        }
-        #resetImg, #outputImg{
-        	margin:10px 10px 0 0;
-        	width:90px;
-        	height:30px;
-        }
-        </style>
+        <link type="text/css" rel="stylesheet" href="avatarclipper.css" />
     </head>
     <body>
     <div id="avatarClipper">
@@ -95,6 +24,6 @@
     		<p>200*200px</p>
     	</div><!--/div#resultRegion-->
     </div><!--/div#avatarClipper-->
-    <script type="text/javascript" src="canvasapp.js"></script>
+    <script type="text/javascript" src="avatarclipper.js"></script>
     </body>
 </html>

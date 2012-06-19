@@ -15,10 +15,14 @@ var GLOBAL = { //this object contains all the global variable
 	counter: 0,
 	ctxPic: null,
 	ctxResult: null,
+	ctxResult2: null,
 	ctxMask: null,
+	ctxPattern: null,
 	isClick: false,
 	canvasResult: null,
+	canvasResult2: null,
 	canvasMask: null,
+	canvasPattern: null,
 	img: null
 };
 
@@ -49,9 +53,9 @@ function bind(src, e, f, isCapture){
 /*the load function when document is ready*/
 function eventWindowLoaded(){
 	canvasApp();
-	bind(canvasMask, 'mousemove', onMouseMove, false);
-	bind(canvasMask, 'mousedown', onMouseDown, false);
-	bind(canvasMask, 'mouseup', onMouseUp, false);
+	bind(GLOBAL.canvasMask, 'mousemove', onMouseMove, false);
+	bind(GLOBAL.canvasMask, 'mousedown', onMouseDown, false);
+	bind(GLOBAL.canvasMask, 'mouseup', onMouseUp, false);
 }
 
 
@@ -73,29 +77,54 @@ function canvasApp(){
 	var ctxPic = myCanvasPic.getContext("2d");
 	GLOBAL.ctxPic = ctxPic;
 	
-	var myCanvasResult = document.getElementById("canvasResult");
-	GLOBAL.canvasResult = myCanvasResult;
-	var ctxResult = myCanvasResult.getContext("2d");
-	GLOBAL.ctxResult = ctxResult;
-	
 	var myCanvasMask = document.getElementById("canvasMask");
 	GLOBAL.canvasMask = myCanvasMask;
 	var ctxMask = myCanvasMask.getContext("2d");
 	GLOBAL.ctxMask = ctxMask;
 	
-	var myCanvasPattern = document.getElementById("canvasPattern");
+	var myCanvasResult = document.getElementById("canvasResult");
+	GLOBAL.canvasResult = myCanvasResult;
+	var ctxResult = myCanvasResult.getContext("2d");
+	GLOBAL.ctxResult = ctxResult;
+	
+	var myCanvasResult2 = document.getElementById("canvasResult2");
+	GLOBAL.canvasResult2 = myCanvasResult2;
+	var ctxResult2 = myCanvasResult2.getContext("2d");
+	GLOBAL.ctxResult2 = ctxResult2;
+	
+	//var myCanvasPattern = document.getElementById("canvasPattern");
+	var myCanvasPattern = document.createElement("canvas");
+	myCanvasPattern.width = 20;
+	myCanvasPattern.height = 20;
 	var ctxPattern = myCanvasPattern.getContext("2d");
 	
 	//Draw the grid pattern background
 	ctxPattern.fillStyle="rgba(122, 122, 122, 0.5)";
 	ctxPattern.fillRect(0, 0, 10, 10);
 	ctxPattern.fillRect(10, 10, 20, 20);
-	ctxPic.save();
-	ctxPic.fillStyle = ctxPic.createPattern(myCanvasPattern, 'repeat');
-	ctxPic.fillRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
-	ctxPic.restore();
+	GLOBAL.ctxPattern = ctxPattern;
+	GLOBAL.canvasPattern = myCanvasPattern;
+	
+	resetImage();
+	/*GLOBAL.ctxPic.save();
+	GLOBAL.ctxPic.fillStyle = GLOBAL.ctxPic.createPattern(GLOBAL.canvasPattern, 'repeat');
+	GLOBAL.ctxPic.fillRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
+	GLOBAL.ctxPic.restore();*/
+	
+	//bind the function for the output image button
+	var outputImgBtn = document.getElementById("outputImg");
+	bind(outputImgBtn, 'click', outputImage, false);
+	
+	//bind the function for the reset image button
+	var resetImgBtn = document.getElementById("resetImg");
+	bind(resetImgBtn, 'click', resetImage, false);
+	
+	var img = new Image();
+	GLOBAL.img = img;
+	dragImage();
 	
 	//Draw the image
+	/*
 	var img = new Image();
 	img.src = "1.jpg";
 	bind(img, "load", function(){
@@ -119,6 +148,7 @@ function canvasApp(){
 		GLOBAL.ctxMask.fillStyle = "rgba(0, 0, 0, 0.4)";
 		GLOBAL.ctxMask.fillRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
 	}, false);
+	*/
 }
 
 
@@ -144,9 +174,13 @@ function onMouseMove(e){
 	var target = e.target?e.target:e.srcElement;
 	
 	if(GLOBAL.isClick){
+		//set the cursor to the crosshair
+		//var computedStyle = document.defaultView.getComputedStyle(GLOBAL.canvasMask, null);
+		//computedStyle.cursor = "crosshair";
+		
 		//earse the background first
 		GLOBAL.ctxMask.fillStyle = "rgba(0, 0, 0, 0.4)";
-		GLOBAL.ctxMask.strokeStyle = "rgba(255, 0, 0, 0.6)";
+		GLOBAL.ctxMask.strokeStyle = "rgba(255, 255, 255, 1)";
 		GLOBAL.ctxMask.clearRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
 		GLOBAL.ctxMask.fillRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
 		
@@ -173,6 +207,7 @@ function onMouseUp(e){
 	RECT.height = pY - target.offsetTop - RECT.y;
 			
 	GLOBAL.ctxResult.clearRect(0, 0, 100, 100);
+	GLOBAL.ctxResult2.clearRect(0, 0, 200, 200);
 	
 	//var imagedata = GLOBAL.ctxPic.getImageData(RECT.x, RECT.y, RECT.width, RECT.height);
 	//GLOBAL.ctxResult.putImageData(imagedata, 0, 0);
@@ -187,6 +222,7 @@ function onMouseUp(e){
 		dw = Math.abs(100 * RECT.width / RECT.height);
 	}
 	GLOBAL.ctxResult.drawImage(GLOBAL.img, RECT.x, RECT.y, RECT.width, RECT.height, 0, 0, dw, dh);
+	GLOBAL.ctxResult2.drawImage(GLOBAL.img, RECT.x, RECT.y, RECT.width, RECT.height, 0, 0, dw*2, dh*2);
 	
 	//var resultImg = document.getElementById("resultImg");
 	//resultImg.setAttribute("src", GLOBAL.canvasResult.toDataURL());
@@ -200,4 +236,83 @@ function onMouseUp(e){
 }
 
 
+/*the function output the clip result(which is be seen in canvasResult) to image files*/
+function outputImage(){
+	window.open(GLOBAL.canvasResult2.toDataURL(), "clipImage");
+}
 
+
+/**/
+function resetImage(){
+	GLOBAL.img = null;
+	
+	GLOBAL.ctxPic.clearRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
+	GLOBAL.ctxPic.save();
+	GLOBAL.ctxPic.fillStyle = GLOBAL.ctxPic.createPattern(GLOBAL.canvasPattern, 'repeat');
+	GLOBAL.ctxPic.fillRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
+	GLOBAL.ctxPic.restore();
+	
+	GLOBAL.ctxPic.save();
+	GLOBAL.ctxPic.font = "normal bold 20px cursive";
+	var message = "Drag an image file here.";
+	var metrics = GLOBAL.ctxPic.measureText(message);
+	GLOBAL.ctxPic.fillText(message, (GLOBAL.getWidth()/2)-(metrics.width/2), GLOBAL.getHeight()/2+6);
+	GLOBAL.ctxPic.restore();
+	dragImage();
+}
+
+
+/*Drag image file to the canvas*/
+function dragImage(){
+	if(typeof window.FileReader == 'undefined'){
+		console.log("ERROR:FileReader not support.");
+		return;
+	}
+	
+	bind(GLOBAL.canvasMask, 'dragover', function(e){
+		e.preventDefault();
+		return false;
+	}, false);
+	
+	bind(GLOBAL.canvasMask, 'dragend', function(e){
+		e.preventDefault();
+		return false;
+	}, false);
+	
+	bind(GLOBAL.canvasMask, 'drop', function(e){
+		e = e?e:event;
+		e.preventDefault();
+		
+		var file = e.dataTransfer.files[0];
+		var reader = new FileReader();
+		reader.onload = function(event){
+			GLOBAL.img.src = event.target.result;
+			bind(GLOBAL.img, 'load', drawImage, false);
+			//drawImage();
+		}
+		reader.readAsDataURL(file);
+		return false;
+	}, false);
+}
+
+
+/*Draw Image on the canvas*/
+function drawImage(){
+	var imgWidth = GLOBAL.img.width;
+	var imgHeight = GLOBAL.img.height;
+	var sx = 0, sy = 0, sw = imgWidth, sh = imgHeight, dx, dy, dw, dh;
+	if(imgWidth >= imgHeight){ 		//fill the width or height of the image to the canvas
+		dw = GLOBAL.getWidth();
+		dh = dw*imgHeight/imgWidth;
+		dx = 0;
+		dy = Math.floor((GLOBAL.getHeight() - dh) / 2);
+	}else{
+		dh = GLOBAL.getHeight();
+		dw = dh*imgWidth/imgHeight;
+		dy = 0;
+		dx = Math.floor((GLOBAL.getWidth() - dw) / 2);
+	}
+	GLOBAL.ctxPic.drawImage(GLOBAL.img, sx, sy, sw, sh, dx, dy, dw, dh);
+	GLOBAL.ctxMask.fillStyle = "rgba(0, 0, 0, 0.4)";
+	GLOBAL.ctxMask.fillRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
+}
