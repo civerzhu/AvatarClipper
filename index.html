@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>My Canvas Project</title>
+        <title>avatar clipper</title>
         <link type="text/css" rel="stylesheet" href="avatarclipper.css" />
     </head>
     <body>
@@ -18,10 +18,12 @@
     		<input id="outputImg" type="button" value="output image"/>
     	</div><!--/div#editRegion-->
     	<div id="resultRegion">
+        <form>
     		<canvas id="canvasResult" width="100" height="100">HTML5 canvas here.</canvas>
-    		<p>100*100px</p>
+            <input type="radio" id="pic100" name="outputpic" value="100" />100*100px
     		<canvas id="canvasResult2" width="200" height="200">HTML5 canvas here.</canvas>
-    		<p>200*200px</p>
+    		<input type="radio" id="pic200" name="outputpic" value="200" checked="checked" />200*200px
+        </form>
     	</div><!--/div#resultRegion-->
     </div><!--/div#avatarClipper-->
     <script type="text/javascript" src="avatarclipper.js"></script>

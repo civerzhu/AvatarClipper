@@ -5,7 +5,7 @@
  @summary: my first project for testing HTML5 canvas.
  **/
 
-var GLOBAL = { //this object contains all the global variable
+var G = { //this object contains all the G variable
 	getWidth: function(){
 		return document.getElementById("canvasPic").getAttribute('width');
 	},
@@ -17,13 +17,23 @@ var GLOBAL = { //this object contains all the global variable
 	ctxResult: null,
 	ctxResult2: null,
 	ctxMask: null,
-	ctxPattern: null,
-	isClick: false,
+	canvasPic: null,
 	canvasResult: null,
 	canvasResult2: null,
 	canvasMask: null,
-	canvasPattern: null,
-	img: null
+	isClick: false,
+	img: null,
+	isTL: null,
+	isTR: null,
+	isBR: null,
+	isBL: null,
+	isInner: null,
+	gapTop: 0,
+	gapLeft: 0,
+	stretchW: 1,
+	stretchH: 1,
+	currentX: 0,
+	currentY: 0
 };
 
 
@@ -53,9 +63,9 @@ function bind(src, e, f, isCapture){
 /*the load function when document is ready*/
 function eventWindowLoaded(){
 	canvasApp();
-	bind(GLOBAL.canvasMask, 'mousemove', onMouseMove, false);
-	bind(GLOBAL.canvasMask, 'mousedown', onMouseDown, false);
-	bind(GLOBAL.canvasMask, 'mouseup', onMouseUp, false);
+	bind(G.canvasMask, 'mousemove', onMouseMove, false);
+	bind(G.canvasMask, 'mousedown', onMouseDown, false);
+	bind(G.canvasMask, 'mouseup', onMouseUp, false);
 }
 
 
@@ -74,42 +84,26 @@ function canvasApp(){
 	}
 	
 	var myCanvasPic = document.getElementById("canvasPic");
+	G.canvasPic = myCanvasPic;
 	var ctxPic = myCanvasPic.getContext("2d");
-	GLOBAL.ctxPic = ctxPic;
+	G.ctxPic = ctxPic;
 	
 	var myCanvasMask = document.getElementById("canvasMask");
-	GLOBAL.canvasMask = myCanvasMask;
+	G.canvasMask = myCanvasMask;
 	var ctxMask = myCanvasMask.getContext("2d");
-	GLOBAL.ctxMask = ctxMask;
+	G.ctxMask = ctxMask;
 	
 	var myCanvasResult = document.getElementById("canvasResult");
-	GLOBAL.canvasResult = myCanvasResult;
+	G.canvasResult = myCanvasResult;
 	var ctxResult = myCanvasResult.getContext("2d");
-	GLOBAL.ctxResult = ctxResult;
+	G.ctxResult = ctxResult;
 	
 	var myCanvasResult2 = document.getElementById("canvasResult2");
-	GLOBAL.canvasResult2 = myCanvasResult2;
+	G.canvasResult2 = myCanvasResult2;
 	var ctxResult2 = myCanvasResult2.getContext("2d");
-	GLOBAL.ctxResult2 = ctxResult2;
-	
-	//var myCanvasPattern = document.getElementById("canvasPattern");
-	var myCanvasPattern = document.createElement("canvas");
-	myCanvasPattern.width = 20;
-	myCanvasPattern.height = 20;
-	var ctxPattern = myCanvasPattern.getContext("2d");
-	
-	//Draw the grid pattern background
-	ctxPattern.fillStyle="rgba(122, 122, 122, 0.5)";
-	ctxPattern.fillRect(0, 0, 10, 10);
-	ctxPattern.fillRect(10, 10, 20, 20);
-	GLOBAL.ctxPattern = ctxPattern;
-	GLOBAL.canvasPattern = myCanvasPattern;
+	G.ctxResult2 = ctxResult2;
 	
 	resetImage();
-	/*GLOBAL.ctxPic.save();
-	GLOBAL.ctxPic.fillStyle = GLOBAL.ctxPic.createPattern(GLOBAL.canvasPattern, 'repeat');
-	GLOBAL.ctxPic.fillRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
-	GLOBAL.ctxPic.restore();*/
 	
 	//bind the function for the output image button
 	var outputImgBtn = document.getElementById("outputImg");
@@ -120,52 +114,20 @@ function canvasApp(){
 	bind(resetImgBtn, 'click', resetImage, false);
 	
 	var img = new Image();
-	GLOBAL.img = img;
+	G.img = img;
 	dragImage();
-	
-	//Draw the image
-	/*
-	var img = new Image();
-	img.src = "1.jpg";
-	bind(img, "load", function(){
-		GLOBAL.img = img;
-		
-		var imgWidth = img.width;
-		var imgHeight = img.height;
-		var sx = 0, sy = 0, sw = imgWidth, sh = imgHeight, dx, dy, dw, dh;
-		if(imgWidth >= imgHeight){ 		//fill the width or height of the image to the canvas
-			dw = GLOBAL.getWidth();
-			dh = dw*imgHeight/imgWidth;
-			dx = 0;
-			dy = Math.floor((GLOBAL.getHeight() - dh) / 2);
-		}else{
-			dh = GLOBAL.getHeight();
-			dw = dh*imgWidth/imgHeight;
-			dy = 0;
-			dx = Math.floor((GLOBAL.getWidth() - dw) / 2);
-		}
-		GLOBAL.ctxPic.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-		GLOBAL.ctxMask.fillStyle = "rgba(0, 0, 0, 0.4)";
-		GLOBAL.ctxMask.fillRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
-	}, false);
-	*/
 }
 
 
 function onMouseDown(e){
-	e = e?e:event;
-	var target = e.target?e.target:e.sreElement;
-	GLOBAL.isClick = true;
-	
-	var pX = e.pageX?e.pageX:e.offsetX;
-	var pY = e.pageY?e.pageY:e.offsetY;
-	RECT.x = pX - target.offsetLeft;
-	RECT.y = pY - target.offsetTop;
-	
-	//earse the background of the gray color	
-	GLOBAL.ctxMask.clearRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
-	GLOBAL.ctxMask.fillStyle = "rgba(0, 0, 0, 0.4)";
-	GLOBAL.ctxMask.fillRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
+	e = e? e : event;
+	var target = e.target? e.target : e.sreElement;
+	G.isClick = true;
+
+	var pX = e.pageX? e.pageX : e.offsetX;
+	var pY = e.pageY? e.pageY : e.offsetY;
+
+	checkMouseHit(pX, pY, target);
 }
 
 
@@ -173,25 +135,17 @@ function onMouseMove(e){
 	e = e?e:event;
 	var target = e.target?e.target:e.srcElement;
 	
-	if(GLOBAL.isClick){
+	if(G.isClick){
 		//set the cursor to the crosshair
-		//var computedStyle = document.defaultView.getComputedStyle(GLOBAL.canvasMask, null);
+		//var computedStyle = document.defaultView.getComputedStyle(G.canvasMask, null);
 		//computedStyle.cursor = "crosshair";
-		
-		//earse the background first
-		GLOBAL.ctxMask.fillStyle = "rgba(0, 0, 0, 0.4)";
-		GLOBAL.ctxMask.strokeStyle = "rgba(255, 255, 255, 1)";
-		GLOBAL.ctxMask.clearRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
-		GLOBAL.ctxMask.fillRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
-		
+
 		var pX = e.pageX?e.pageX:e.offsetX;
 		var pY = e.pageY?e.pageY:e.offsetY;
-		RECT.width = pX - target.offsetLeft - RECT.x;
-		RECT.height = pY - target.offsetTop - RECT.y;
 		
-		//clear the rectangle and draw the border
-		GLOBAL.ctxMask.clearRect(RECT.x, RECT.y, RECT.width, RECT.height);
-		GLOBAL.ctxMask.strokeRect(RECT.x, RECT.y, RECT.width, RECT.height);
+		updateRect(pX, pY, target);
+
+		showRect();
 	}
 }
 
@@ -199,66 +153,42 @@ function onMouseMove(e){
 function onMouseUp(e){
 	e = e?e:event;
 	var target = e.target?e.target:e.srcElement;
-	GLOBAL.isClick = false;
+	G.isClick = false;
 	
 	var pX = e.pageX?e.pageX:e.offsetX;
 	var pY = e.pageY?e.pageY:e.offsetY;
-	RECT.width = pX - target.offsetLeft - RECT.x;
-	RECT.height = pY - target.offsetTop - RECT.y;
-			
-	GLOBAL.ctxResult.clearRect(0, 0, 100, 100);
-	GLOBAL.ctxResult2.clearRect(0, 0, 200, 200);
 	
-	//var imagedata = GLOBAL.ctxPic.getImageData(RECT.x, RECT.y, RECT.width, RECT.height);
-	//GLOBAL.ctxResult.putImageData(imagedata, 0, 0);
-	//window.open(GLOBAL.canvasResult.toDataURL(), "clipImage");
-	
-	var dw, dh;
-	if(Math.abs(RECT.width) >= Math.abs(RECT.height)){
-		dw = 100;
-		dh = Math.abs(100 * RECT.height / RECT.width);
-	}else{
-		dh = 100;
-		dw = Math.abs(100 * RECT.width / RECT.height);
-	}
-	GLOBAL.ctxResult.drawImage(GLOBAL.img, RECT.x, RECT.y, RECT.width, RECT.height, 0, 0, dw, dh);
-	GLOBAL.ctxResult2.drawImage(GLOBAL.img, RECT.x, RECT.y, RECT.width, RECT.height, 0, 0, dw*2, dh*2);
-	
-	//var resultImg = document.getElementById("resultImg");
-	//resultImg.setAttribute("src", GLOBAL.canvasResult.toDataURL());
-		
-	
-	//reset the attributes of RECT object
-	RECT.x = 0;
-	RECT.y = 0;
-	RECT.width = 0;
-	RECT.height = 0;
+	updateRect(pX, pY, target);
+
+	showRect();
+
+	generateResult();
 }
 
 
 /*the function output the clip result(which is be seen in canvasResult) to image files*/
 function outputImage(){
-	window.open(GLOBAL.canvasResult2.toDataURL(), "clipImage");
+	var output_pixel = document.forms[0].outputpic[0].checked;
+	if(output_pixel){
+		window.open(G.canvasResult.toDataURL(), "clipImage 100*100pixel");
+	}else{
+		window.open(G.canvasResult2.toDataURL(), "clipImage 200*200pixel");
+	}
 }
 
 
 /**/
 function resetImage(){
-	GLOBAL.img = null;
+	G.img = null;
 	
-	GLOBAL.ctxPic.clearRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
-	GLOBAL.ctxPic.save();
-	GLOBAL.ctxPic.fillStyle = GLOBAL.ctxPic.createPattern(GLOBAL.canvasPattern, 'repeat');
-	GLOBAL.ctxPic.fillRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
-	GLOBAL.ctxPic.restore();
+	G.ctxPic.clearRect(0, 0, G.getWidth(), G.getHeight());
 	
-	GLOBAL.ctxPic.save();
-	GLOBAL.ctxPic.font = "normal bold 20px cursive";
+	G.ctxPic.save();
+	G.ctxPic.font = "normal bold 20px cursive";
 	var message = "Drag an image file here.";
-	var metrics = GLOBAL.ctxPic.measureText(message);
-	GLOBAL.ctxPic.fillText(message, (GLOBAL.getWidth()/2)-(metrics.width/2), GLOBAL.getHeight()/2+6);
-	GLOBAL.ctxPic.restore();
-	dragImage();
+	var metrics = G.ctxPic.measureText(message);
+	G.ctxPic.fillText(message, (G.getWidth()/2)-(metrics.width/2), G.getHeight()/2+6);
+	G.ctxPic.restore();
 }
 
 
@@ -269,28 +199,34 @@ function dragImage(){
 		return;
 	}
 	
-	bind(GLOBAL.canvasMask, 'dragover', function(e){
+	bind(G.canvasMask, 'dragover', function(e){
 		e.preventDefault();
 		return false;
 	}, false);
 	
-	bind(GLOBAL.canvasMask, 'dragend', function(e){
+	bind(G.canvasMask, 'dragend', function(e){
 		e.preventDefault();
 		return false;
 	}, false);
 	
-	bind(GLOBAL.canvasMask, 'drop', function(e){
+	bind(G.canvasMask, 'drop', function(e){
 		e = e?e:event;
 		e.preventDefault();
 		
 		var file = e.dataTransfer.files[0];
 		var reader = new FileReader();
-		reader.onload = function(event){
-			GLOBAL.img.src = event.target.result;
-			bind(GLOBAL.img, 'load', drawImage, false);
-			//drawImage();
+		
+		reader.onload = function(ev){
+			G.img.src = ev.target.result;
+			bind(G.img, 'load', function(){
+				drawImage();
+				initRect();
+				showRect();
+				generateResult();
+			}, false);
 		}
 		reader.readAsDataURL(file);
+
 		return false;
 	}, false);
 }
@@ -298,21 +234,128 @@ function dragImage(){
 
 /*Draw Image on the canvas*/
 function drawImage(){
-	var imgWidth = GLOBAL.img.width;
-	var imgHeight = GLOBAL.img.height;
+	var imgWidth = G.img.width;
+	var imgHeight = G.img.height;
 	var sx = 0, sy = 0, sw = imgWidth, sh = imgHeight, dx, dy, dw, dh;
 	if(imgWidth >= imgHeight){ 		//fill the width or height of the image to the canvas
-		dw = GLOBAL.getWidth();
+		dw = G.getWidth();
 		dh = dw*imgHeight/imgWidth;
 		dx = 0;
-		dy = Math.floor((GLOBAL.getHeight() - dh) / 2);
+		dy = Math.floor((G.getHeight() - dh) / 2);
+		G.stretchW = 1;
+		G.stretchH = imgWidth / dw;
 	}else{
-		dh = GLOBAL.getHeight();
+		dh = G.getHeight();
 		dw = dh*imgWidth/imgHeight;
 		dy = 0;
-		dx = Math.floor((GLOBAL.getWidth() - dw) / 2);
+		dx = Math.floor((G.getWidth() - dw) / 2);
+		G.stretchW = imgHeight / dh;
+		G.stretchH = 1;
 	}
-	GLOBAL.ctxPic.drawImage(GLOBAL.img, sx, sy, sw, sh, dx, dy, dw, dh);
-	GLOBAL.ctxMask.fillStyle = "rgba(0, 0, 0, 0.4)";
-	GLOBAL.ctxMask.fillRect(0, 0, GLOBAL.getWidth(), GLOBAL.getHeight());
+
+	//set the G member gapTop and gapLeft for the img gap to the canvas's border
+	G.gapLeft = dx;
+	G.gapTop = dy;
+
+	G.ctxPic.drawImage(G.img, sx, sy, sw, sh, dx, dy, dw, dh);
+	G.ctxMask.fillStyle = "rgba(0, 0, 0, 0.4)";
+	G.ctxMask.fillRect(0, 0, G.getWidth(), G.getHeight());
 }
+
+
+function generateResult(){
+	//generate the image result
+	G.ctxResult.clearRect(0, 0, 100, 100);
+	G.ctxResult2.clearRect(0, 0, 200, 200);
+	
+	var dw = 100, dh = 100;
+	G.ctxResult.drawImage(G.canvasPic, RECT.x, RECT.y, RECT.width, RECT.height, 0, 0, dw, dh);
+	G.ctxResult2.drawImage(G.canvasPic, RECT.x, RECT.y, RECT.width, RECT.height, 0, 0, dw*2, dh*2);
+}
+
+
+function initRect(){
+	RECT.width = 200;
+	RECT.height = 200;
+	RECT.x = Math.floor(( G.getWidth() - 200 ) / 2);
+	RECT.y = Math.floor(( G.getHeight() - 200 ) / 2);
+}
+
+function showRect() {
+	G.ctxMask.save();
+	G.ctxMask.fillStyle = "rgba(0, 0, 0, 0.4)";
+	G.ctxMask.strokeStyle = "rgba(255, 255, 255, 1)";
+	//earse the mask first
+	G.ctxMask.clearRect(0, 0, G.getWidth(), G.getHeight());
+	G.ctxMask.fillRect(0, 0, G.getWidth(), G.getHeight());
+
+	G.ctxMask.clearRect(RECT.x, RECT.y, RECT.width, RECT.height);
+	G.ctxMask.strokeRect(RECT.x, RECT.y, RECT.width, RECT.height);
+	//draw four square grid
+	G.ctxMask.strokeRect(RECT.x - 5, RECT.y - 5, 10, 10);
+	G.ctxMask.strokeRect(RECT.x + RECT.width - 5, RECT.y - 5, 10, 10);
+	G.ctxMask.strokeRect(RECT.x + RECT.width - 5, RECT.y + RECT.height - 5, 10, 10);
+	G.ctxMask.strokeRect(RECT.x - 5, RECT.y + RECT.height - 5, 10, 10);
+	G.ctxMask.restore();
+}
+
+function checkMouseHit(px, py, target){
+	G.isTL = false;
+	G.isTR = false;
+	G.isBR = false;
+	G.isBL = false;
+	G.isInner = false;
+	var tx = RECT.x + target.offsetLeft;
+	var ty = RECT.y + target.offsetTop;
+	if(px >= tx - 5 && px <= tx + 5 && py >= ty - 5 && py <= ty + 5){
+		G.isTL = true;
+	}else if(px >= tx + RECT.width - 5 && px <= tx + RECT.width + 5 && py >= ty - 5 && py <= ty + 5){
+		G.isTR = true;
+	}else if(px >= tx + RECT.width - 5 && px <= tx + RECT.width + 5 && py >= ty + RECT.height - 5 && py <= ty + RECT.height + 5){
+		G.isBR = true;
+	}else if(px >= tx - 5 && px <= tx + 5 && py >= ty + RECT.height - 5 && py <= ty + RECT.height + 5){
+		G.isBL = true;
+	}else if(px > tx + 5 && px < tx + RECT.width - 5 && py > ty + 5 && py < ty + RECT.height - 5){
+		G.isInner = true;
+		G.currentX = px;
+		G.currentY = py;
+	}
+}
+
+function updateRect(pX, pY, target){
+	var maxLength = RECT.width;
+	var w = RECT.width;
+	var h = RECT.height;
+
+	if(G.isTL){
+		w = pX - (target.offsetLeft + RECT.x + RECT.width);
+		h = pY - (target.offsetTop + RECT.y + RECT.height);
+		maxLength = Math.abs(w) >= Math.abs(h)? Math.abs(w) : Math.abs(h);
+		RECT.x = RECT.x + RECT.width + maxLength * w / Math.abs(w);
+		RECT.y = RECT.y + RECT.height + maxLength * h / Math.abs(h);
+	}else if(G.isTR){
+		w = pX - (target.offsetLeft + RECT.x);
+		h = pY - (target.offsetTop + RECT.y + RECT.height);
+		maxLength = Math.abs(w) >= Math.abs(h)? Math.abs(w) : Math.abs(h);
+		RECT.y = RECT.y + RECT.height + maxLength * h / Math.abs(h);
+	}else if(G.isBR){
+		w = pX - (target.offsetLeft + RECT.x);
+		h = pY - (target.offsetTop + RECT.y);
+		maxLength = Math.abs(w) >= Math.abs(h)? Math.abs(w) : Math.abs(h);
+	}else if(G.isBL){
+		w = pX - (target.offsetLeft + RECT.x + RECT.width);
+		h = pY - (target.offsetTop + RECT.y);
+		maxLength = Math.abs(w) >= Math.abs(h)? Math.abs(w) : Math.abs(h);
+		RECT.x = RECT.x + RECT.width + maxLength * w / Math.abs(w);
+	}else if(G.isInner){
+		var diffX = pX - G.currentX;
+		var diffY = pY - G.currentY;
+		RECT.x += diffX;
+		RECT.y += diffY;
+		G.currentX = pX;
+		G.currentY = pY;
+	}
+	RECT.width = maxLength;
+	RECT.height = maxLength;
+}
+
