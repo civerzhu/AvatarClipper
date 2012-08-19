@@ -30,9 +30,6 @@
    top:-100%;
    left:0;
 }
-#canvasMask:hover{
-	cursor: col-resize;
-}
 #canvasPattern{
    display:none;
 }

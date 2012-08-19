@@ -28,12 +28,9 @@ var G = { //this object contains all the G variable
 	isBR: null,
 	isBL: null,
 	isInner: null,
-	gapTop: 0,
-	gapLeft: 0,
-	stretchW: 1,
-	stretchH: 1,
 	currentX: 0,
-	currentY: 0
+	currentY: 0,
+	zoomScale: 1
 };
 
 
@@ -66,6 +63,8 @@ function eventWindowLoaded(){
 	bind(G.canvasMask, 'mousemove', onMouseMove, false);
 	bind(G.canvasMask, 'mousedown', onMouseDown, false);
 	bind(G.canvasMask, 'mouseup', onMouseUp, false);
+	bind(document.getElementById("zoomOut"), 'click', onZoomOut, false);
+	bind(document.getElementById("zoomIn"), 'click', onZoomIn, false);
 }
 
 
@@ -115,12 +114,13 @@ function canvasApp(){
 	
 	var img = new Image();
 	G.img = img;
-	dragImage();
+	//dragImage();
 }
 
 
 function onMouseDown(e){
 	e = e? e : event;
+	e.preventDefault();
 	var target = e.target? e.target : e.sreElement;
 	G.isClick = true;
 
@@ -133,25 +133,39 @@ function onMouseDown(e){
 
 function onMouseMove(e){
 	e = e?e:event;
+	e.preventDefault();
 	var target = e.target?e.target:e.srcElement;
+	var pX = e.pageX?e.pageX:e.offsetX;
+	var pY = e.pageY?e.pageY:e.offsetY;
 	
 	if(G.isClick){
-		//set the cursor to the crosshair
-		//var computedStyle = document.defaultView.getComputedStyle(G.canvasMask, null);
-		//computedStyle.cursor = "crosshair";
-
-		var pX = e.pageX?e.pageX:e.offsetX;
-		var pY = e.pageY?e.pageY:e.offsetY;
 		
 		updateRect(pX, pY, target);
 
 		showRect();
+	}else{
+		checkMouseHit(pX, pY, target);
+		if(G.isTL || G.isBR){
+			document.body.style.cursor = "nw-resize";
+		}else if(G.isTR || G.isBL){
+			document.body.style.cursor = "sw-resize";
+		}else if(G.isInner){
+			document.body.style.cursor = "move";			
+		}else{
+			document.body.style.cursor = "default";
+		}
+
+		G.isTL = false;
+		G.isTR = false;
+		G.isBR = false;
+		G.isBL = false;
 	}
 }
 
 
 function onMouseUp(e){
 	e = e?e:event;
+	e.preventDefault();
 	var target = e.target?e.target:e.srcElement;
 	G.isClick = false;
 	
@@ -163,11 +177,16 @@ function onMouseUp(e){
 	showRect();
 
 	generateResult();
+
+	document.body.style.cursor = "default";
 }
 
 
 /*the function output the clip result(which is be seen in canvasResult) to image files*/
 function outputImage(){
+	if(!G.img.src){
+		return;
+	}
 	var output_pixel = document.forms[0].outputpic[0].checked;
 	if(output_pixel){
 		window.open(G.canvasResult.toDataURL(), "clipImage 100*100pixel");
@@ -179,7 +198,7 @@ function outputImage(){
 
 /**/
 function resetImage(){
-	G.img = null;
+	G.img = new Image();
 	
 	G.ctxPic.clearRect(0, 0, G.getWidth(), G.getHeight());
 	
@@ -189,6 +208,15 @@ function resetImage(){
 	var metrics = G.ctxPic.measureText(message);
 	G.ctxPic.fillText(message, (G.getWidth()/2)-(metrics.width/2), G.getHeight()/2+6);
 	G.ctxPic.restore();
+
+	G.ctxMask.clearRect(0, 0, G.getWidth(), G.getHeight());
+	G.ctxMask.fillStyle = "rgba(0, 0, 0, 0.4)";
+	G.ctxMask.fillRect(0, 0, G.getWidth(), G.getHeight());
+
+	G.ctxResult.clearRect(0, 0, 100, 100);
+	G.ctxResult2.clearRect(0, 0, 200, 200);
+
+	dragImage();
 }
 
 
@@ -240,26 +268,20 @@ function drawImage(){
 	if(imgWidth >= imgHeight){ 		//fill the width or height of the image to the canvas
 		dw = G.getWidth();
 		dh = dw*imgHeight/imgWidth;
-		dx = 0;
-		dy = Math.floor((G.getHeight() - dh) / 2);
-		G.stretchW = 1;
-		G.stretchH = imgWidth / dw;
 	}else{
 		dh = G.getHeight();
 		dw = dh*imgWidth/imgHeight;
-		dy = 0;
-		dx = Math.floor((G.getWidth() - dw) / 2);
-		G.stretchW = imgHeight / dh;
-		G.stretchH = 1;
 	}
 
-	//set the G member gapTop and gapLeft for the img gap to the canvas's border
-	G.gapLeft = dx;
-	G.gapTop = dy;
+	dw = dw * G.zoomScale;
+	dh = dh * G.zoomScale;
+
+	dx = Math.floor((G.getWidth() - dw) / 2);
+	dy = Math.floor((G.getHeight() - dh) / 2);
 
 	G.ctxPic.drawImage(G.img, sx, sy, sw, sh, dx, dy, dw, dh);
-	G.ctxMask.fillStyle = "rgba(0, 0, 0, 0.4)";
-	G.ctxMask.fillRect(0, 0, G.getWidth(), G.getHeight());
+	/*G.ctxMask.fillStyle = "rgba(0, 0, 0, 0.4)";
+	G.ctxMask.fillRect(0, 0, G.getWidth(), G.getHeight());*/
 }
 
 
@@ -309,16 +331,21 @@ function checkMouseHit(px, py, target){
 	var ty = RECT.y + target.offsetTop;
 	if(px >= tx - 5 && px <= tx + 5 && py >= ty - 5 && py <= ty + 5){
 		G.isTL = true;
+		document.body.style.cursor = "nw-resize";
 	}else if(px >= tx + RECT.width - 5 && px <= tx + RECT.width + 5 && py >= ty - 5 && py <= ty + 5){
 		G.isTR = true;
+		document.body.style.cursor = "sw-resize";
 	}else if(px >= tx + RECT.width - 5 && px <= tx + RECT.width + 5 && py >= ty + RECT.height - 5 && py <= ty + RECT.height + 5){
 		G.isBR = true;
+		document.body.style.cursor = "nw-resize";
 	}else if(px >= tx - 5 && px <= tx + 5 && py >= ty + RECT.height - 5 && py <= ty + RECT.height + 5){
 		G.isBL = true;
+		document.body.style.cursor = "sw-resize";
 	}else if(px > tx + 5 && px < tx + RECT.width - 5 && py > ty + 5 && py < ty + RECT.height - 5){
 		G.isInner = true;
 		G.currentX = px;
 		G.currentY = py;
+		document.body.style.cursor = "move";
 	}
 }
 
@@ -330,21 +357,33 @@ function updateRect(pX, pY, target){
 	if(G.isTL){
 		w = pX - (target.offsetLeft + RECT.x + RECT.width);
 		h = pY - (target.offsetTop + RECT.y + RECT.height);
+		if(Math.abs(w) < 20 || Math.abs(h) < 20){
+			return;
+		}
 		maxLength = Math.abs(w) >= Math.abs(h)? Math.abs(w) : Math.abs(h);
 		RECT.x = RECT.x + RECT.width + maxLength * w / Math.abs(w);
 		RECT.y = RECT.y + RECT.height + maxLength * h / Math.abs(h);
 	}else if(G.isTR){
 		w = pX - (target.offsetLeft + RECT.x);
 		h = pY - (target.offsetTop + RECT.y + RECT.height);
+		if(Math.abs(w) < 20 || Math.abs(h) < 20){
+			return;
+		}
 		maxLength = Math.abs(w) >= Math.abs(h)? Math.abs(w) : Math.abs(h);
 		RECT.y = RECT.y + RECT.height + maxLength * h / Math.abs(h);
 	}else if(G.isBR){
 		w = pX - (target.offsetLeft + RECT.x);
 		h = pY - (target.offsetTop + RECT.y);
+		if(Math.abs(w) < 20 || Math.abs(h) < 20){
+			return;
+		}
 		maxLength = Math.abs(w) >= Math.abs(h)? Math.abs(w) : Math.abs(h);
 	}else if(G.isBL){
 		w = pX - (target.offsetLeft + RECT.x + RECT.width);
 		h = pY - (target.offsetTop + RECT.y);
+		if(Math.abs(w) < 20 || Math.abs(h) < 20){
+			return;
+		}
 		maxLength = Math.abs(w) >= Math.abs(h)? Math.abs(w) : Math.abs(h);
 		RECT.x = RECT.x + RECT.width + maxLength * w / Math.abs(w);
 	}else if(G.isInner){
@@ -359,3 +398,29 @@ function updateRect(pX, pY, target){
 	RECT.height = maxLength;
 }
 
+
+
+function onZoomOut(){
+	if(!G.img.src){
+		return;
+	}
+	if(G.zoomScale < 2){
+		G.zoomScale += 0.1;
+		G.ctxPic.clearRect(0, 0, G.getWidth(), G.getHeight());
+		drawImage();
+		generateResult();
+	}
+}
+
+
+function onZoomIn(){
+	if(!G.img.src){
+		return;
+	}
+	if(G.zoomScale > 0.5){
+		G.zoomScale -= 0.1;
+		G.ctxPic.clearRect(0, 0, G.getWidth(), G.getHeight());
+		drawImage();
+		generateResult();
+	}
+}
